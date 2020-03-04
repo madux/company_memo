@@ -13,8 +13,8 @@
                             <field name="date"/>
                         </group>
                         <group>
-                            <field name="resp" readonly="0"  invisible="1"/>
-                            <field name="direct_employee_id" readonly="1"  invisible="1"/>
+                            <field name="resp" readonly="0" invisible="1"/>
+                            <field name="direct_employee_id" invisible="0"/>
                         </group>
                             <field name="reason" required="1" placeholder="Please Add Reason(s) ..." colspan="20"/>
                     <footer>
@@ -32,25 +32,30 @@
             <field name="name">Memo Record</field>
 
             <field name="model">memo.model</field>
-            <field name="context">{'form_no_edit':[('user_id','in', ['res_users'])]}</field> 
-            <field eval="25" name="priority"/>
+            <field name="context">{'form_no_edit':[('user_ids','in', ['res_users'])]}</field> 
+            <field eval="1" name="priority"/>
             <field name ="arch" type="xml">
                 <form string="Memo Record">
                 <header>
 
 
-                    <button name="forward_memo" string="Forward" icon="fa-forward" attrs="{'invisible':[('state','in',['Approve','Done','refuse'])]}" type="object" class="oe_highlight"/>
+                    <button name="forward_memo" id="forward_memo" string="Forward" icon="fa-forward" attrs="{'invisible':[('state','in',['Approve','Done','refuse'])]}" type="object" class="oe_highlight fwm"/>
                     <button name="print_memo" string="Print Memo" icon="fa-print" attrs="{'invisible':[('state','in',['submit','refuse'])]}" type="object" class="btn-primary"/>
-                    <button name="approve_memo" states="Sent" string="Approve Payment" type="object" class="oe_highlight" groups="company_memo.mainmemo_manager,base.group_system"/>
+                    <button name="approve_memo" states="Sent,Approve" string="Approve Payment" type="object" class="oe_highlight" groups="company_memo.mainmemo_manager,base.group_system"/>
                     <button name="return_memo" id ="return_id" string="Reject Memo" icon="fa-redo" 
                     attrs="{'invisible':[('state','in', ['submit', 'Approve','Done','refuse'])]}" 
                     type="object" class="btn-primary" groups="company_memo.mainmemo_account,account.group_account_manager,base.group_system"/>
-                    <button name="Register_Payment" string="Register Payment" type="object" class="oe_highlight" 
-                    groups="company_memo.mainmemo_account,account.group_account_manager,base.group_system" attrs="{'invisible':[('state','not in',['Approve'])]}"/>
+                    <button name="Register_Payment" string="Register Payment" type="object" class="oe_highlight" confirm="Are you sure you want to make Payment?"
+                    groups="company_memo.mainmemo_account,base.group_system" attrs="{'invisible':[('state','not in',['Approve'])]}"/>
                     <!-- attrs="{'invisible':['&amp;',('memo_type','!=','Payment'),('state','in',['Approve'])]}"/> -->
                     <button name="set_draft" states="refuse" string="Set to Draft" type="object" class="btn-primary"/>
                     <button name="Cancel" states="Sent" string="Cancel" type="object" class="btn-primary"/>
-                    <field name="state" widget="statusbar" statusbar_visible="submit,Sent,refuse,Approve,Done" /><!--statusbar_visible="draft,reported,done,refused"-->
+                    <button name="user_done_memo"
+                                        class="oe_stat_button oe_highlight"
+                                        icon="fa-calendar" states="Approve2" help="Click to move to Done."
+                                        type="object" confirm ="Are you sure you want to Complete?" string="Complete"
+                                    />
+                    <field name="state" widget="statusbar" statusbar_visible="submit,Sent,Approve,Done" /><!--statusbar_visible="draft,reported,done,refused"-->
 
                 </header>
                     <sheet>
@@ -66,9 +71,10 @@
                                     <button name="user_approve_memo"
                                         class="oe_stat_button oe_highlight"
                                         icon="fa-calendar" states="Sent"
-                                        type="object" string="Approve Memo">
+                                        type="object" confirm ="Are you sure you want to approve?" string="Approve Memo">
                                     </button>
                                 </div>
+                                 
                             </div>
                             <br/>
                         <div class="oe_button_box">
@@ -99,11 +105,12 @@
                                 <field name="employee_id" attrs="{'readonly':[('state','not in',['submit'])]}"/>
                                  <field name="direct_employee_id" required="0" invisible="1" string= "Through" attrs="{'readonly':[('state','in',['Done', 'Approve'])]}"/>
                                   <field name="set_staff" string = "Memo With" readonly="1" invisible="1"/>
+                                  <field name="demo_staff" invisible="0"/>
                                 <field name="dept_ids" widget="selection" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" readonly="1"/>
                                 <field name="invoice_id" attrs="{'invisible':[('memo_type','!=','Payment')]}"/>
-                                <field name="vendor_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'invisible':[('memo_type','!=','Payment')]}"/>
-                                <field name = "users_followers" widget="many2many_tags" required="0"/>
-                                <field name = "res_users" widget="many2many_tags" required="0"/>
+                                <field name="vendor_id" string="Recipient" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'invisible':[('memo_type','!=','Payment')]}"/>
+                                <field name = "users_followers" widget="many2many_tags" required="0" readonly="1"/>
+                                <field name = "res_users" widget="many2many_tags" required="0" readonly="1"/>
 
                                  
                             </group>
@@ -111,12 +118,13 @@
                             <group>
 
                                 <field name="date"/>
-                                <field name="user_id" readonly="1" invisible="1"/>
-                                <field name="amountfig" string="Amount" attrs="{'readonly':[('state','not in',['submit'])],'required':[('memo_type','=','Payment')],'invisible':[('memo_type','!=','Payment')]}"/>
+                                <field name="user_ids" readonly="1" invisible="1"/>
+                                <field name="amountfig" string="Amount" attrs="{'required':[('memo_type','=','Payment')],'invisible':[('memo_type','!=','Payment')]}"/>
                                 <field name="project_id" attrs="{'readonly':[('state','not in',['submit'])]}"/>
                                 <field widget="binary" height="64" name="file_upload" filename="file_namex" required="0" invisible="1" string="Upload File" />
                                 <field name="file_namex" invisible="1"/>
-                                <field name = "partner_id" string="Notification Reciepients" widget="many2many_tags" invisible="0"/>
+                                
+                                <field name = "partner_id" string="Notification Reciepients" widget="many2many_tags" invisible="1" readonly="1"/>
                                 
 
                                 <field name="status_progress" widget="progressbar" string="Progress(%)"/>
@@ -133,6 +141,10 @@
                         <notebook>
                         <page name='description' string='Memo Body'>
                             <field name="description" string = "More Notes" placeholder="Notes..." widget="html"/>
+                        </page>
+                        
+                         <page name='comments' string='Comments'>
+                            <field name="comments" readonly="1" string = "Comments" placeholder="Notes..." widget="html"/>
                         </page>
 
                         <page name='reason_backs' string='Return Reason'>
@@ -159,7 +171,7 @@
 
                     <field name="name"/>
                     <field name="employee_id"/>
-                    <field name="set_staff" string = "Directed To"/>
+                    <field name="set_staff" string = "Memo With?"/>
 
                     <field name="state"/>
                     <field name="status_progress" widget="progressbar" string="Progress(%)"/>
@@ -171,9 +183,12 @@
       	<field name="name">Internal Memo Request Search</field>
 		    <field name="model">memo.model</field>
 		    <field name="arch" type="xml">
-				 <search string="Internal Memo Filter">
-
+				 <search string="Internal Memo Filter"> 
 						<field name="name"/>
+                        <field name="dept_ids"/>
+                        <field name="vendor_id" string="Recipient"/>
+                        <field name="employee_id"/>
+                        <field name="project_id"/>
                         <field name="code"/> 
                         <field name="date" />
 

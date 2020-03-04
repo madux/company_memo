@@ -7,25 +7,35 @@ odoo.define('memo.hide_edit_buttons', function (require) {
     FormView.include({
         load_record: function (record) {
             if (record && this.$buttons) { 
-                    if (record.state !== "submit"){
-                        if (record.user_id){
-                            if (record.user_id[0] === session.uid) {
-                                this.$buttons.find('.o_form_buttons_view').hide();
-                                console.log(record.user_id[0])
-                            } else {
-                                this.$buttons.find('.o_form_buttons_view').show();
-                                console.log('dfd')
-
-                            }
-                        }
+                if ((this.model === "memo.model") && (record.state != "submit")){
+                    if (session.uid !== record.demo_staff){
+                        console.log('User '+String(record.demo_staff)+'UID '+session.uid)
+                        this.$buttons.find('.o_form_buttons_view').hide();
+                            console.log('Hidden at user memo')
                     }
-                
+                    else {
+                                this.$buttons.find('.o_form_buttons_view').show();
+                                console.log('Shown for company memo')
+                    } 
+                } 
             }
             return this._super(record);
         }
     });
 });
+// if (record.users_followers){
+                        //     if (record.res_users[0] === session.uid) {
+                        //         this.$buttons.find('.oe_highlight').hide();
+                                //$('#forward_memo').hide();
+                                // console.log(record.users_followers[0]).btn btn-sm oe_highlight fvm
+                            //     console.log('nnnn')
 
+                            // } 
+                            // else {
+                            //     this.$buttons.find('.btn btn-sm oe_highlight fvm').hide();
+                            //     console.log('Nonexx')
+
+                            // }
 // var Users = new openerp.Model('res.users');
 // Users.query(['name', 'login', 'user_email', 'signature'])
 //      .filter([['active', '=', true], ['company_id', '=', main_company]])

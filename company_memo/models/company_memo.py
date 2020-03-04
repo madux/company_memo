@@ -39,6 +39,12 @@ class Memo_Model(models.Model):
     def _default_employee(self):
         return self.env.context.get('default_employee_id') or self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
 
+    # @api.constrains('amountfig')
+    # def check_amount_value(self):
+    #     if self.memo_type == "Payment":
+    #         if self.amountfig < 0:
+    #             raise ValidationError('If you are running a payment Memo, kindly ensure the amount is \
+    #                 greater than 0')
     # efault to current employee using the system 
     def _default_user(self):
         return self.env.context.get('default_user_id') or self.env['res.users'].search([('id', '=', self.env.uid)], limit=1)
@@ -51,7 +57,14 @@ class Memo_Model(models.Model):
     employee_id = fields.Many2one('hr.employee', string = 'Employee', default =_default_employee) 
     direct_employee_id = fields.Many2one('hr.employee', string = 'Employee') 
     set_staff = fields.Many2one('hr.employee', string = 'Employee')
-    user_id = fields.Many2one('res.users', string = 'Users', default =_default_user)
+    demo_staff = fields.Integer(string='User', compute="get_user_staff",
+                                default=lambda self: self.env['res.users'].search([('id', '=', self.env.uid)], limit=1).id)
+
+    @api.depends('set_staff')
+    def get_user_staff(self):
+        self.demo_staff = self.set_staff.user_id.id
+        
+    user_ids = fields.Many2one('res.users', string = 'Users', default =_default_user)
     dept_ids = fields.Many2one('hr.department', string ='Department', compute="employee_department", readonly = True, store =True)
     description = fields.Char('Note')
     project_id = fields.Many2one('account.analytic.account', 'Project')
@@ -63,7 +76,7 @@ class Memo_Model(models.Model):
     file_namex = fields.Char("FileName")
     state = fields.Selection([('submit', 'Draft'),
                                 ('Sent', 'Sent'),
-                                ('Approve', 'Approve'),
+                                ('Approve', 'Waiting For Payment'),
                                 ('Approve2', 'Memo Approved'),
                                 ('Done', 'Done'),
                                 ('refuse', 'Refused'),
@@ -71,16 +84,22 @@ class Memo_Model(models.Model):
                              track_visibility='onchange',
                              copy=False, default='submit',
                              required=True,
-                             help='Request Report State')
+                             help='Request Report state')
     date = fields.Datetime('Request Date', default=fields.Datetime.now())
     invoice_id = fields.Many2one('account.invoice', string='Invoice', store=True)
     status_progress = fields.Float(string="Progress(%)", compute='_progress_state')
     users_followers = fields.Many2many('hr.employee', string='Add followers') #, default=_default_employee)
     res_users = fields.Many2many('res.users', string='Approvers') #, default=_default_employee)
-    
+    comments = fields.Text('Comments', default="-")
     attachment_number = fields.Integer(compute='_compute_attachment_number', string='No. Attachments')
     partner_id = fields.Many2many('res.partner', string='Related Partners')
     
+    @api.onchange('invoice_id')
+    def get_amount(self):
+        if self.invoice_id:
+            self.amountfig = self.invoice_id.amount_total
+         
+        
     # @api.one
     # def write(self, vals):
     #     res = super(Memo_Model, self).write(vals)
@@ -120,7 +139,12 @@ class Memo_Model(models.Model):
     @api.one   
     def set_draft(self):
         self.write({'state': "submit", 'direct_employee_id': False})
-    
+        
+    @api.one   
+    def user_done_memo(self):
+        self.write({'state': "Done"})
+        
+    user_done_memo
     @api.one
     def Cancel(self):
         self.write({'state': "submit", 'direct_employee_id': False, 'partner_id':False, 'user_followers': False})
@@ -135,15 +159,20 @@ class Memo_Model(models.Model):
     def employee_department(self):
         if self.employee_id:
             self.dept_ids = self.employee_id.department_id.id
-    
+
+               
     """line 4 - 7 checks if the current user is the initiator of the memo, if true, raises error
     else: it opens the wizard"""
     @api.multi
     def forward_memo(self): 
+        users = self.env['res.users'].browse([self.env.uid])
+        manager = users.has_group("company_memo.mainmemo_manager")
+        admin = users.has_group("base.group_system")
         dummy, view_id = self.env['ir.model.data'].get_object_reference('company_memo', 'memo_model_forward_wizard')
         # if self.state != "submit":
-        #     for rec in self.res_users:
-        #         if rec.id == self.env.uid:
+        #     for rec in self.res_users: 
+        #         # if rec.id == self.env.uid:
+        #         if not manager:
         #             raise ValidationError('You are not allowed to Edit this document')
         return {
               'name': 'Forward Memo',
@@ -156,10 +185,9 @@ class Memo_Model(models.Model):
               'context': {
                   'default_memo_record': self.id,
                   'default_date': self.date, 
-                  'default_resp':self.env.uid,  
+                  'default_resp': self.env.uid,  
               },
         }
-    
     """The wizard action passes the employee whom the memo was director to this function."""
     @api.one
     def forward_memos(self, employee, comments): # Always available,  
@@ -197,37 +225,47 @@ class Memo_Model(models.Model):
     def _get_group_users(self):
         followers = []
         account_id = self.env.ref('company_memo.mainmemo_account')
-        acc_group = self.env['res.groups'].search([('id', '=', int(account_id.id))])
+        acc_group = self.env['res.groups'].search([('id', '=', int(account_id.id))], limit=1)
 
-        for rec in acc_group:
-            for users in rec.users:
-                employee = self.env['hr.employee'].search(
-                    [('user_id', '=', users.id)])
-                for rex in employee:
-                    followers.append(rex.id)
+        for users in acc_group.users:
+            employee = self.env['hr.employee'].search([('user_id', '=', users.id)])
+            for rex in employee:
+                followers.append(rex.id)
         return self.write({'users_followers': [(4, followers)]})
-        
+
     @api.one
     def approve_memo(self): # Always available to Some specific groups
-        self._get_group_users()
+        users = self.env['res.users'].browse([self.env.uid])
+        manager = users.has_group("company_memo.mainmemo_manager")
+        if not manager:
+            if self.env.uid == self.employee_id.user_id.id:
+                raise ValidationError('You are not Permitted to approve a Payment Memo.\
+                Forward it to the authorized Person')
+         
         body = "MEMO APPROVE NOTIFICATION: -Approved By ;\n %s on %s" %(self.env.user.name,fields.Date.today())
         bodyx = "Dear {}, </br>I wish to notify you that a memo with description, '{}',\
-                from {} department have been approved by {}. Accountant's should take note. \
+                from {} department have been approved by {}. Accountant's/ Respective authority should take note. \
                 Kindly review and get back to me. </br> </br>Kindly {} </br>\
                 Yours Faithfully</br>{}".format(self.employee_id.name, 
                                             self.name, self.employee_id.department_id.name, self.env.user.name,
                                             self.get_url(self.id, self._name), self.env.user.name)
+
+        users = self.env['res.users'].browse([self.env.uid])
+        if self.state == "Approve":
+            raise ValidationError("Sorry you have already approved this payment")
+        
         if self.memo_type == "Payment":
             self.state = "Approve"
-        else:
+            self.write({'res_users': [(4, [users.id])]})
+        elif self.memo_type == "Internal":
             self.state = "Done"
+            self.write({'res_users': [(4, [users.id])]})
         self.mail_sending_direct(bodyx)
         self.follower_messages(body)
     
     @api.one
     def user_approve_memo(self): # Always available to Some specific groups
         body = "MEMO APPROVE NOTIFICATION: -Approved By ;\n %s on %s" %(self.env.user.name, fields.Date.today())
-        
         bodyx = "Dear {}, </br>I wish to notify you that a memo with description, '{}',\
                 from {} department have been approved by {}. Kindly review. </br> </br>Kindly {} </br>\
                 Yours Faithfully</br>{}".format(self.employee_id.name, 
@@ -236,14 +274,23 @@ class Memo_Model(models.Model):
         
         users = self.env['res.users'].browse([self.env.uid])
         user = users.has_group("company_memo.mainmemo_officer")
-        if user:
-            if self.memo_type != "Payment":
-                self.state = "Approve2"
-                self.follower_messages(body)
-                self.mail_sending_direct(bodyx)
-            else:
-                raise ValidationError('You are not Permitted to approve a Payment Memo. Forward it to the authorized Person')
+        manager = users.has_group("company_memo.mainmemo_manager")
+        acc = users.has_group("company_memo.mainmemo_account")
+        if not manager:
+            if self.env.uid == self.employee_id.user_id.id:
+                raise ValidationError('You are not Permitted to approve a Payment Memo.\
+                Forward it to the authorized Person')
+            self.approve_memo()
+        # if not user:
+        #     raise ValidationError('You are not Permitted to approve a Payment Memo.\
+        #         Forward it to the authorized Person')
         
+        # elif (user) and (self.memo_type == "Payment"):
+        #     self.state = "Approve2"
+        #     self.follower_messages(body)
+        #     self.mail_sending_direct(bodyx)
+        #     self.write({'res_users': [(4, [users.id])]})
+            
         else:
             self.approve_memo()
         
@@ -257,8 +304,11 @@ class Memo_Model(models.Model):
     @api.multi
     def Register_Payment(self):
         dummy, view_id = self.env['ir.model.data'].get_object_reference('account', 'view_account_payment_form')
-        if self.memo_type != "Payment" and self.amountfig < 1:
-            raise ValidationError("Memo type must be 'Payment' and amount must must be greater than one to proceed with payment")
+        # if not self.vendor_id:
+        #     raise ValidationError("Please select a Vendor")
+            
+        if (self.memo_type != "Payment") or (self.amountfig < 1):
+            raise ValidationError("(1) Memo type must be 'Payment'\n (2) Amount must be greater than one to proceed with payment")
         ret = {
                 'name':'Register Memo Payment',
                 'view_mode': 'form',
@@ -270,20 +320,21 @@ class Memo_Model(models.Model):
                 'context': {
                         'default_amount': self.amountfig,
                         'default_payment_type': 'outbound',
-                        # 'default_partner_id':self.vendor_id.id, 
-                        'default_memo_id':self.id,
+                        'default_partner_id':self.vendor_id.id, 
+                        'default_communication': self.code, 
+                        # 'default_memo_id':self.id,
                         #'default_journal_id':self._default_journal(),
-                        'default_commmunication': str(self.name)+ ' from ' + str(self.employee_id.name), 
+                        #'default_commmunication': str(self.name)+ ' from ' + str(self.employee_id.name),
                 },
-                'target': 'current'
+                'target': 'new'
                 }
         return ret
         
     @api.multi
     def return_memo(self):
-        for rec in self.res_users:
-            if self.env.uid == rec.id:
-                raise ValidationError('You are not allow to return or reject a memo')
+        # for rec in self.res_users:
+        #     if self.env.uid == rec.id:
+        #         raise ValidationError('You are not allow to return or reject a memo')
         return {
               'name': 'Reason for Return',
               'view_type': 'form',
@@ -311,15 +362,15 @@ class Memo_Model(models.Model):
                 order.status_progress = random.randint(30, 60)
 
             elif order.state == "Approve":
-                order.status_progress = random.randint(70, 100)
+                order.status_progress = random.randint(80, 88)
                 
             elif order.state == "Approve2":
-                order.status_progress = random.randint(70, 100)
+                order.status_progress = random.randint(89, 95)
                 
             elif order.state == "Done":
-                order.status_progress = random.randint(70, 100)
+                order.status_progress = random.randint(98, 100)
             else:
-                order.status_pogress = 100 / len(order.state)
+                order.status_pogress = random.randint(70, 100) # 100 / len(order.state)
 
 
     @api.multi
@@ -338,7 +389,13 @@ class Send_Memoo_back(models.Model):
     reason = fields.Char('Reason') 
     date = fields.Datetime('Date')
     direct_employee_id = fields.Many2one('hr.employee', 'Direct To')
-
+    
+    # @api.onchange('memo_record')
+    # def domain_employee(self):
+    #     employees = [rec.id for rec in self.memo_record.users_followers]
+    #     domain = {'direct_employee_id': [('id', '=', employees)]}
+    #     return {'domain': domain}
+        
     def get_url(self, id, name):
         base_url = http.request.env['ir.config_parameter'].sudo().get_param('web.base.url')
         base_url += '/web#id=%d&view_type=form&model=%s' % (id, name)
@@ -355,7 +412,7 @@ class Send_Memoo_back(models.Model):
 
             get_state.write({'state':'refuse'})
             for rec in get_state.res_users:
-                if get_state.user_id.id == rec.id:
+                if get_state.user_ids.id == rec.id:
                     get_state.res_users = [(3, rec.id)]
             self.mail_sending_reject(bodyx)
         else:
@@ -378,3 +435,19 @@ class Send_Memoo_back(models.Model):
             }
         mail_id = self.env['mail.mail'].create(mail_data)
         self.env['mail.mail'].send(mail_id)
+        
+class account_payment(models.Model):
+    _inherit = 'account.payment'
+
+    #  advance_account = fields.Many2one('account.account', 'Advance Account', related='journal_id.default_debit_account_id')
+    @api.multi
+    def post(self):
+        res = super(account_payment, self).post()
+        if self.communication:
+            memo_model = self.env['memo.model'].sudo().search([('code', '=', self.communication)])
+            if memo_model: 
+                memo_model.sudo().write({'state':'Done'}) 
+            else:
+                pass
+         
+        return res
