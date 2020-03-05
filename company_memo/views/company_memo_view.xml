@@ -64,7 +64,7 @@
                             <!-- <img src="/allocation_addon/static/img/usl.png" style="max-height:80px;max-width:60px;"/> -->
                             <div class="row">
                                 <!-- <div class="col-xs-4 pull-right mt8"> -->
-                                       <center><img src="/company_memo/static/img/usl.png" style="max-height:180px;max-width:400px;"/></center>
+                                       <center><img src="/company_memo/static/description/icon.png" style="max-height:180px;max-width:400px;"/></center>
                                     
                                 <!-- </div> -->
                                 <div class="col-xs-4 pull-left mt8">
