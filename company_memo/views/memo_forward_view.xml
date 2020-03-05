@@ -12,9 +12,6 @@
                             <field name="memo_record" readonly="1"/> 
                             <field name="resp" readonly="1" invisible="0"/>
                             <field name="direct_employee_id" string="To" required="1"/> 
-                            <!-- <field name = "users_followers" widget="many2many_tags" required="0"/> -->
-
-                            <!-- <field name="amountfig"/> -->
                             <field name="date"/>
                         </group>
                         <group> 
