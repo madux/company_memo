@@ -22,7 +22,7 @@
     # 'qweb': [
     #     'static/src/xml/base.xml',
     # ],
-    'price': 1000.00,
+    'price': 35.00,
     'sequence': 1,
     'currency': 'EUR',
     'installable': True,
