@@ -19,8 +19,6 @@ odoo.define('memo.crashManager', function (require) {
         
             
         CrashManager.include({
-             
-    
             /**
              * @override
              * This function is invoked after user performs an action after session expiry
@@ -54,7 +52,3 @@ odoo.define('memo.crashManager', function (require) {
     function DialogAlert(message){
         return alert('Error in Validation')
     }
-
-
-    
-    

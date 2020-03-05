@@ -11,7 +11,7 @@ from lxml import etree
 
 class Memo_Model(models.Model):
     _name = "memo.model"
-    _inherit = ['mail.thread', 'ir.needaction_mixin']
+    _inherit = ['mail.thread']  #, 'ir.needaction_mixin']
     _rec_name = "name"
     _order = "id desc"
     
@@ -37,38 +37,41 @@ class Memo_Model(models.Model):
     
     # efault to current employee using the system 
     def _default_employee(self):
-        return self.env.context.get('default_employee_id') or self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
+        return self.env.context.get('default_employee_id') or \
+            self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
 
-    # @api.constrains('amountfig')
-    # def check_amount_value(self):
-    #     if self.memo_type == "Payment":
-    #         if self.amountfig < 0:
-    #             raise ValidationError('If you are running a payment Memo, kindly ensure the amount is \
-    #                 greater than 0')
-    # efault to current employee using the system 
     def _default_user(self):
-        return self.env.context.get('default_user_id') or self.env['res.users'].search([('id', '=', self.env.uid)], limit=1)
+        return self.env.context.get('default_user_id') \
+            or self.env['res.users'].search([('id', '=', self.env.uid)], limit=1)
 
     memo_type = fields.Selection([("Payment", "Payment"),
-                                     ("Internal", "Internal Memo")], string="Memo Type",default="Internal", required=True)
+                                     ("Internal", "Internal Memo")], 
+                                 string="Memo Type",
+                                 default="Internal",
+                                 required=True)
 
     name = fields.Char('Subject', size=400)
     code = fields.Char('Code', readonly=True)
-    employee_id = fields.Many2one('hr.employee', string = 'Employee', default =_default_employee) 
+    employee_id = fields.Many2one('hr.employee', string = 'Employee', 
+                                  default =_default_employee) 
     direct_employee_id = fields.Many2one('hr.employee', string = 'Employee') 
     set_staff = fields.Many2one('hr.employee', string = 'Employee')
     demo_staff = fields.Integer(string='User', compute="get_user_staff",
-                                default=lambda self: self.env['res.users'].search([('id', '=', self.env.uid)], limit=1).id)
+                                default=lambda self: self.env['res.users']\
+                                    .search([('id', '=', self.env.uid)], limit=1).id)
 
     @api.depends('set_staff')
     def get_user_staff(self):
         self.demo_staff = self.set_staff.user_id.id
         
     user_ids = fields.Many2one('res.users', string = 'Users', default =_default_user)
-    dept_ids = fields.Many2one('hr.department', string ='Department', compute="employee_department", readonly = True, store =True)
+    dept_ids = fields.Many2one('hr.department', string ='Department',
+                               compute="employee_department",
+                               readonly = True, store =True)
     description = fields.Char('Note')
     project_id = fields.Many2one('account.analytic.account', 'Project')
-    vendor_id = fields.Many2one('res.partner', 'Vendor', domain=[('supplier','=',True)])
+    vendor_id = fields.Many2one('res.partner', 'Vendor',
+                                domain=[('supplier','=', True)])
     amountfig = fields.Float('Budget Amount', store=True)
     description_two = fields.Text('Reasons')
     reason_back = fields.Char('Return Reason')
@@ -87,9 +90,10 @@ class Memo_Model(models.Model):
                              help='Request Report state')
     date = fields.Datetime('Request Date', default=fields.Datetime.now())
     invoice_id = fields.Many2one('account.invoice', string='Invoice', store=True)
-    status_progress = fields.Float(string="Progress(%)", compute='_progress_state')
-    users_followers = fields.Many2many('hr.employee', string='Add followers') #, default=_default_employee)
-    res_users = fields.Many2many('res.users', string='Approvers') #, default=_default_employee)
+    status_progress = fields.Float(string="Progress(%)",
+                                   compute='_progress_state')
+    users_followers = fields.Many2many('hr.employee', string='Add followers')
+    res_users = fields.Many2many('res.users', string='Approvers')
     comments = fields.Text('Comments', default="-")
     attachment_number = fields.Integer(compute='_compute_attachment_number', string='No. Attachments')
     partner_id = fields.Many2many('res.partner', string='Related Partners')
@@ -99,18 +103,10 @@ class Memo_Model(models.Model):
         if self.invoice_id:
             self.amountfig = self.invoice_id.amount_total
          
-        
-    # @api.one
-    # def write(self, vals):
-    #     res = super(Memo_Model, self).write(vals)
-    #     if self.state != "submit":
-    #         for rec in self.res_users:
-    #             if rec.id == self.env.uid:
-    #                 raise ValidationError('You are not allowed to Edit this document')
-    #         return res
 
     @api.model
-    def fields_view_get(self, view_id='company_memo.memo_model_form_view_3', view_type='form', toolbar=False, submenu=False):
+    def fields_view_get(self, view_id='company_memo.memo_model_form_view_3', 
+                        view_type='form', toolbar=False, submenu=False):
         res = super(Memo_Model, self).fields_view_get(view_id=view_id,
                                                       view_type=view_type,
                                                       toolbar=toolbar,
@@ -129,13 +125,8 @@ class Memo_Model(models.Model):
 
     @api.multi
     def print_memo(self):
-        report = self.env["ir.actions.report.xml"].search(
-            [('report_name', '=', 'company_memo.memomodel_print_template')], limit=1)
-        if report:
-            report.write({'report_type': 'qweb-pdf'})
-        return self.env['report'].get_action(
-            self.id, 'company_memo.memomodel_print_template')
-     
+        return self.env.ref('company_memo.print_memo_model_report').report_action(self)
+             
     @api.one   
     def set_draft(self):
         self.write({'state': "submit", 'direct_employee_id': False})
@@ -143,11 +134,13 @@ class Memo_Model(models.Model):
     @api.one   
     def user_done_memo(self):
         self.write({'state': "Done"})
-        
-    user_done_memo
+
     @api.one
     def Cancel(self):
-        self.write({'state': "submit", 'direct_employee_id': False, 'partner_id':False, 'user_followers': False})
+        self.write({'state': "submit", 
+                    'direct_employee_id': False, 
+                    'partner_id':False, 
+                    'user_followers': False})
 
     def get_url(self, id, name):
         base_url = http.request.env['ir.config_parameter'].sudo().get_param('web.base.url')
@@ -159,9 +152,8 @@ class Memo_Model(models.Model):
     def employee_department(self):
         if self.employee_id:
             self.dept_ids = self.employee_id.department_id.id
-
-               
-    """line 4 - 7 checks if the current user is the initiator of the memo, if true, raises error
+  
+    """checks if the current user is the initiator of the memo, if true, raises error
     else: it opens the wizard"""
     @api.multi
     def forward_memo(self): 
@@ -169,11 +161,7 @@ class Memo_Model(models.Model):
         manager = users.has_group("company_memo.mainmemo_manager")
         admin = users.has_group("base.group_system")
         dummy, view_id = self.env['ir.model.data'].get_object_reference('company_memo', 'memo_model_forward_wizard')
-        # if self.state != "submit":
-        #     for rec in self.res_users: 
-        #         # if rec.id == self.env.uid:
-        #         if not manager:
-        #             raise ValidationError('You are not allowed to Edit this document')
+
         return {
               'name': 'Forward Memo',
               'view_type': 'form',
@@ -184,8 +172,8 @@ class Memo_Model(models.Model):
               'target': 'new',
               'context': {
                   'default_memo_record': self.id,
-                  'default_date': self.date, 
-                  'default_resp': self.env.uid,  
+                  'default_date': self.date,
+                  'default_resp': self.env.uid,
               },
         }
     """The wizard action passes the employee whom the memo was director to this function."""
@@ -196,16 +184,16 @@ class Memo_Model(models.Model):
         # self.write({'partner_id': [(4, lists2)]})  
         bodyx = "Dear {}, </br>I wish to notify you that a memo with description, '{}',\
                 from {} department was sent to you. Kindly review and get back to me. </br> </br>Kindly {} </br>\
-                Yours Faithfully</br>{}".format(self.direct_employee_id.name, 
-                                                self.name, self.employee_id.department_id.name, 
-                                                self.get_url(self.id, self._name), 
+                Yours Faithfully</br>{}".format(self.direct_employee_id.name,
+                                                self.name, self.employee_id.department_id.name,
+                                                self.get_url(self.id, self._name),
                                                 self.env.user.name)
         self.mail_sending_direct(bodyx)
         self.direct_employee_id = False 
         body = "Memo for %s initiated by %s, moved by- ; %s and sent to %s" %(self.name, self.employee_id.name, self.env.user.name, employee)
         body_main = body + "\n with the comments: %s" %(comments)
         self.follower_messages(body_main)
-          
+
     def mail_sending_direct(self, bodyx): 
         subject = "Memo Notification"
         email_from = self.env.user.email
@@ -221,7 +209,7 @@ class Memo_Model(models.Model):
             }
         mail_id = self.env['mail.mail'].create(mail_data)
         self.env['mail.mail'].send(mail_id)
-    
+
     def _get_group_users(self):
         followers = []
         account_id = self.env.ref('company_memo.mainmemo_account')
@@ -241,7 +229,7 @@ class Memo_Model(models.Model):
             if self.env.uid == self.employee_id.user_id.id:
                 raise ValidationError('You are not Permitted to approve a Payment Memo.\
                 Forward it to the authorized Person')
-         
+   
         body = "MEMO APPROVE NOTIFICATION: -Approved By ;\n %s on %s" %(self.env.user.name,fields.Date.today())
         bodyx = "Dear {}, </br>I wish to notify you that a memo with description, '{}',\
                 from {} department have been approved by {}. Accountant's/ Respective authority should take note. \
@@ -256,10 +244,10 @@ class Memo_Model(models.Model):
         
         if self.memo_type == "Payment":
             self.state = "Approve"
-            self.write({'res_users': [(4, [users.id])]})
+            self.write({'res_users': [(4, users.id)]})
         elif self.memo_type == "Internal":
             self.state = "Done"
-            self.write({'res_users': [(4, [users.id])]})
+            self.write({'res_users': [(4, users.id)]})
         self.mail_sending_direct(bodyx)
         self.follower_messages(body)
     
@@ -281,15 +269,6 @@ class Memo_Model(models.Model):
                 raise ValidationError('You are not Permitted to approve a Payment Memo.\
                 Forward it to the authorized Person')
             self.approve_memo()
-        # if not user:
-        #     raise ValidationError('You are not Permitted to approve a Payment Memo.\
-        #         Forward it to the authorized Person')
-        
-        # elif (user) and (self.memo_type == "Payment"):
-        #     self.state = "Approve2"
-        #     self.follower_messages(body)
-        #     self.mail_sending_direct(bodyx)
-        #     self.write({'res_users': [(4, [users.id])]})
             
         else:
             self.approve_memo()
@@ -390,11 +369,6 @@ class Send_Memoo_back(models.Model):
     date = fields.Datetime('Date')
     direct_employee_id = fields.Many2one('hr.employee', 'Direct To')
     
-    # @api.onchange('memo_record')
-    # def domain_employee(self):
-    #     employees = [rec.id for rec in self.memo_record.users_followers]
-    #     domain = {'direct_employee_id': [('id', '=', employees)]}
-    #     return {'domain': domain}
         
     def get_url(self, id, name):
         base_url = http.request.env['ir.config_parameter'].sudo().get_param('web.base.url')

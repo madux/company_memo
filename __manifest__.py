@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Office Memo Application',
-    'version': '1.0',
+    'version': '12.0',
     'author': 'Maach Services',
     'description': """A Memo application for odoo""",
     'summary': 'Memo application for Companies etc ',
@@ -23,8 +23,9 @@
     #     'static/src/xml/base.xml',
     # ],
     'price': 35.00,
-    'sequence': 1,
+    'sequence': 5,
     'currency': 'EUR',
     'installable': True,
     'auto_install': False,
+    'application': True,
 }
