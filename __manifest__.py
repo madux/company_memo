@@ -19,6 +19,7 @@
         'views/assets.xml',
         'security/ir.model.access.csv'
     ],
+    "images": ['images/office_memo.png'],
     # 'qweb': [
     #     'static/src/xml/base.xml',
     # ],
