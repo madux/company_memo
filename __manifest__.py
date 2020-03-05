@@ -22,6 +22,8 @@
     # 'qweb': [
     #     'static/src/xml/base.xml',
     # ],
+    "images": ['images/office_memo.png'],
+    
     'price': 35.00,
     'sequence': 5,
     'currency': 'EUR',
