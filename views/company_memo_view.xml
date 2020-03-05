@@ -105,7 +105,7 @@
                                 <field name="employee_id" attrs="{'readonly':[('state','not in',['submit'])]}"/>
                                  <field name="direct_employee_id" required="0" invisible="1" string= "Through" attrs="{'readonly':[('state','in',['Done', 'Approve'])]}"/>
                                   <field name="set_staff" string = "Memo With" readonly="1" invisible="1"/>
-                                  <field name="demo_staff" invisible="0"/>
+                                  <field name="demo_staff" invisible="1"/>
                                 <field name="dept_ids" widget="selection" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" readonly="1"/>
                                 <field name="invoice_id" attrs="{'invisible':[('memo_type','!=','Payment')]}"/>
                                 <field name="vendor_id" string="Recipient" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'invisible':[('memo_type','!=','Payment')]}"/>

@@ -265,34 +265,37 @@ class Memo_Model(models.Model):
     
     @api.one
     def user_approve_memo(self): # Always available to Some specific groups
-        body = "MEMO APPROVE NOTIFICATION: -Approved By ;\n %s on %s" %(self.env.user.name, fields.Date.today())
-        bodyx = "Dear {}, </br>I wish to notify you that a memo with description, '{}',\
-                from {} department have been approved by {}. Kindly review. </br> </br>Kindly {} </br>\
-                Yours Faithfully</br>{}".format(self.employee_id.name, 
-                                            self.name, self.employee_id.department_id.name, self.env.user.name,
-                                            self.get_url(self.id, self._name), self.env.user.name)
-        
-        users = self.env['res.users'].browse([self.env.uid])
-        user = users.has_group("company_memo.mainmemo_officer")
-        manager = users.has_group("company_memo.mainmemo_manager")
-        acc = users.has_group("company_memo.mainmemo_account")
-        if not manager:
-            if self.env.uid == self.employee_id.user_id.id:
-                raise ValidationError('You are not Permitted to approve a Payment Memo.\
-                Forward it to the authorized Person')
-            self.approve_memo()
-        # if not user:
-        #     raise ValidationError('You are not Permitted to approve a Payment Memo.\
-        #         Forward it to the authorized Person')
-        
-        # elif (user) and (self.memo_type == "Payment"):
-        #     self.state = "Approve2"
-        #     self.follower_messages(body)
-        #     self.mail_sending_direct(bodyx)
-        #     self.write({'res_users': [(4, [users.id])]})
+        if self.memo_type == "Internal":
+            body = "MEMO APPROVE NOTIFICATION: -Approved By ;\n %s on %s" %(self.env.user.name, fields.Date.today())
+            bodyx = "Dear {}, </br>I wish to notify you that a memo with description, '{}',\
+                    from {} department have been approved by {}. Kindly review. </br> </br>Kindly {} </br>\
+                    Yours Faithfully</br>{}".format(self.employee_id.name, 
+                                                self.name, self.employee_id.department_id.name, self.env.user.name,
+                                                self.get_url(self.id, self._name), self.env.user.name)
             
+            users = self.env['res.users'].browse([self.env.uid])
+            user = users.has_group("company_memo.mainmemo_officer")
+            manager = users.has_group("company_memo.mainmemo_manager")
+            acc = users.has_group("company_memo.mainmemo_account")
+            if not manager:
+                if self.env.uid == self.employee_id.user_id.id:
+                    raise ValidationError('You are not Permitted to approve a Payment Memo.\
+                    Forward it to the authorized Person')
+                self.approve_memo()
+            # if not user:
+            #     raise ValidationError('You are not Permitted to approve a Payment Memo.\
+            #         Forward it to the authorized Person')
+            
+            # elif (user) and (self.memo_type == "Payment"):
+            #     self.state = "Approve2"
+            #     self.follower_messages(body)
+            #     self.mail_sending_direct(bodyx)
+            #     self.write({'res_users': [(4, [users.id])]})
+                
+            else:
+                self.approve_memo()
         else:
-            self.approve_memo()
+            raise ValidationError('To use this feature, ensure the Memo Type is not a payment memo')
         
     def follower_messages(self, body):
         # body= "RETURN NOTIFICATION;\n %s" %(self.reason_back)

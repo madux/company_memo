@@ -38,7 +38,7 @@
             <field name="name">Memo Account Users See Records in Account</field>
             <field name="model_id" ref="model_memo_model"/>
             <field name="groups" eval="[(6, 0, [ref('mainmemo_account')])]"/>
-            <field name="domain_force"> ['|','|',('users_followers.user_id','in', [user.id]), ('direct_employee_id.user_id.id','=', user.id),('state','in', ['Approve','Done','refuse'])]</field>
+            <field name="domain_force"> ['|','|',('users_followers.user_id','in', [user.id]), ('direct_employee_id.user_id.id','=', user.id),('state','in', ['Approve'])]</field>
         </record> 
         <!-- <record id="memo_user_see_own_rule" model="ir.rule">
             <field name="name">Memo User See Own Record</field>
