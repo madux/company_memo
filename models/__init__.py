@@ -1,3 +1,3 @@
-import res_users
-import company_memo
-import forward_memo
+from . import res_users
+from . import company_memo
+from . import forward_memo
