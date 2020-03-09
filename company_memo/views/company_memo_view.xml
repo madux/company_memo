@@ -41,7 +41,7 @@
 
                     <button name="forward_memo" id="forward_memo" string="Forward" icon="fa-forward" attrs="{'invisible':[('state','in',['Approve','Done','refuse'])]}" type="object" class="oe_highlight fwm"/>
                     <button name="print_memo" string="Print Memo" icon="fa-print" attrs="{'invisible':[('state','in',['submit','refuse'])]}" type="object" class="btn-primary"/>
-                    <button name="approve_memo" states="Sent,Approve" string="Approve Payment" type="object" class="oe_highlight" groups="company_memo.mainmemo_manager,base.group_system"/>
+                    <button name="approve_memo" attrs="{'invisible': ['|',('memo_type','!=','Payment'),('state','not in',['Sent','Approve'])]}" string="Approve Payment" type="object" class="oe_highlight" groups="company_memo.mainmemo_manager,base.group_system"/>
                     <button name="return_memo" id ="return_id" string="Reject Memo" icon="fa-redo" 
                     attrs="{'invisible':[('state','in', ['submit', 'Approve','Done','refuse'])]}" 
                     type="object" class="btn-primary" groups="company_memo.mainmemo_account,account.group_account_manager,base.group_system"/>
@@ -70,7 +70,7 @@
                                 <div class="col-xs-4 pull-left mt8">
                                     <button name="user_approve_memo"
                                         class="oe_stat_button oe_highlight"
-                                        icon="fa-calendar" states="Sent"
+                                        icon="fa-calendar" attrs="{'invisible': ['|',('memo_type','!=','Internal'),('state','!=','Sent')]}"
                                         type="object" confirm ="Are you sure you want to approve?" string="Approve Memo">
                                     </button>
                                 </div>
