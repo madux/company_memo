@@ -56,6 +56,7 @@
 
                 </header>
                     <sheet>
+<<<<<<< HEAD
                     <!-- https://i.imgur.com/ezqLtzV.jpg -->
                     <!-- <div class="row" style="background-image:url('/company_memo/static/description/img/icon.png'); background-cover:cover; height:100px"/> -->
                             <!-- <img src="/allocation_addon/static/img/usl.png" style="max-height:80px;max-width:60px;"/> -->
@@ -72,6 +73,17 @@
                                     </button>
                                 </div>
                                  
+=======
+                        <div class="row">
+                            <!-- <center><img src="/company_memo/static/description/icon.png" style="max-height:180px;max-width:400px;"/></center>
+                                 -->
+                            <div class="col-xs-4 pull-left mt8">
+                                <button name="user_approve_memo"
+                                    class="oe_stat_button oe_highlight"
+                                    icon="fa-calendar" states="Sent"
+                                    type="object" confirm ="Are you sure you want to approve?" string="Approve Memo">
+                                </button>
+>>>>>>> 5764c8b6ba04b7033d4b9053ba61ed18e7911504
                             </div>
                         </div>
                         <br/>

@@ -19,13 +19,12 @@
         'views/assets.xml',
         'security/ir.model.access.csv'
     ],
+    "images": ['images/memo_cover.png'],
     # 'qweb': [
     #     'static/src/xml/base.xml',
     # ],
-    "images": ['images/office_memo.png'],
-    
     'price': 35.00,
-    'sequence': 5,
+    'sequence': 1,
     'currency': 'EUR',
     'installable': True,
     'auto_install': False,
