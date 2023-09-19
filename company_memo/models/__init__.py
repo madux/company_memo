@@ -1,3 +1,10 @@
-import res_users
-import company_memo
-import forward_memo
+from . import res_users
+from . import company_memo
+from . import forward_memo
+from . import account_payment
+from . import request_line
+from . import config_setting
+from . import account_account
+from . import account_move
+from . import account_payment
+from . import hr_employee

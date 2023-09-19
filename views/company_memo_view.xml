@@ -2,155 +2,193 @@
 <odoo>
     <data>
         
-        <record id="memo_model_backrefuse_wizard" model="ir.ui.view">
-            <field name="name">Memo Reject</field>
-            <field name="model">memo.back</field>
-            <field name="arch" type="xml">
-                <form String="Reason for Refusal">
-                    <group>
-                        <group>
-                            <field name="memo_record" readonly="1"/>
-                            <field name="date"/>
-                        </group>
-                        <group>
-                            <field name="resp" readonly="0" invisible="1"/>
-                            <field name="direct_employee_id" invisible="0"/>
-                        </group>
-                            <field name="reason" required="1" placeholder="Please Add Reason(s) ..." colspan="20"/>
-                    <footer>
-                        <button name="post_refuse" type="object" string="Refuse" class="oe_highlight"/>
-                            <button string="Cancel" class="oe_link" special="cancel"/>
-                        </footer>
-                    </group>
-                </form>
-            </field>
-        </record>
-
-        
-
         <record id ="memo_model_form_view_3" model ="ir.ui.view">
             <field name="name">Memo Record</field>
-
             <field name="model">memo.model</field>
-            <field name="context">{'form_no_edit':[('user_ids','in', ['res_users'])]}</field> 
+            <!-- <field name="context">{'form_no_edit':[('user_ids','in', ['res_users'])]}</field>  -->
             <field eval="1" name="priority"/>
             <field name ="arch" type="xml">
                 <form string="Memo Record">
                 <header>
-
-
+                    <!--ADDD-->
                     <button name="forward_memo" id="forward_memo" string="Forward" icon="fa-forward" attrs="{'invisible':[('state','in',['Approve','Done','refuse'])]}" type="object" class="oe_highlight fwm"/>
-                    <button name="print_memo" string="Print Memo" icon="fa-print" attrs="{'invisible':[('state','in',['submit','refuse'])]}" type="object" class="btn-primary"/>
-                    <button name="approve_memo" attrs="{'invisible': ['|',('memo_type','!=','Payment'),('state','not in',['Sent','Approve'])]}" string="Approve Payment" type="object" class="oe_highlight" groups="company_memo.mainmemo_manager,base.group_system"/>
-                    <button name="return_memo" id ="return_id" string="Reject Memo" icon="fa-redo" 
-                    attrs="{'invisible':[('state','in', ['submit', 'Approve','Done','refuse'])]}" 
-                    type="object" class="btn-primary" groups="company_memo.mainmemo_account,account.group_account_manager,base.group_system"/>
-                    <button name="Register_Payment" string="Register Payment" type="object" class="oe_highlight" confirm="Are you sure you want to make Payment?"
-                    groups="company_memo.mainmemo_account,base.group_system" attrs="{'invisible':[('state','not in',['Approve'])]}"/>
-                    <!-- attrs="{'invisible':['&amp;',('memo_type','!=','Payment'),('state','in',['Approve'])]}"/> -->
+                    <button name="approve_memo" attrs="{'invisible': ['|',('memo_type','not in',['loan', 'Payment']),('state','in',['submit', 'Approve','Done','refuse'])]}" string="Approve" type="object" class="oe_highlight"/>
+                    <button name="return_memo" id="return_id" string="Return Memo" icon="fa-redo" attrs="{'invisible': ['|','|', ('memo_type','not in',['loan', 'Payment']),('state','not in',['Sent']), ('user_is_approver','=', False)]}"  type="object" />
+                    <button name="action_post_and_vallidate_payment" string="Register Payment" type="object" class="oe_highlight" confirm="Are you sure you want to make Payment?" attrs="{'invisible':['|','|',('state','not in',['Approve']), ('memo_type','not in',['Payment']),('user_is_approver','=', False)]}"/>
+                    <button name="generate_move_entries" string="Create &amp; Post Cash Advance Entry" type="object" class="oe_highlight" confirm="Are you sure you want to generate?" attrs="{'invisible':['|','|', ('state','not in',['Approve']), ('memo_type','not in',['cash_advance']),('user_is_approver','=', False)]}"/>
+                    <button name="generate_soe_entries" string="Retire Expense" type="object" class="oe_highlight" confirm="Are you sure you want to Retire?" attrs="{'invisible':['|','|', ('state','not in',['Approve']), ('memo_type','not in',['soe']),('user_is_approver','=', False)]}"/>
+                    <!-- <button name="generate_loan_entries" string="Generate Loan Entry" type="object" class="oe_highlight" confirm="Are you sure you want to generate a loan entry?" groups="base.group_system,company_memo.mainmemo_account,account.group_account_manager" attrs="{'invisible':['|',('state','not in',['Approve']),('memo_type','not in',['loan'])]}"/> -->
+<!--ADDD-->
                     <button name="set_draft" states="refuse" string="Set to Draft" type="object" class="btn-primary"/>
-                    <button name="Cancel" states="Sent" string="Cancel" type="object" class="btn-primary"/>
-                    <button name="user_done_memo"
-                                        class="oe_stat_button oe_highlight"
-                                        icon="fa-calendar" states="Approve2" help="Click to move to Done."
-                                        type="object" confirm ="Are you sure you want to Complete?" string="Complete"
-                                    />
-                    <field name="state" widget="statusbar" statusbar_visible="submit,Sent,Approve,Done" /><!--statusbar_visible="draft,reported,done,refused"-->
+                    <button name="Cancel" states="Sent" string="Cancel" type="object" class="btn-primary" attrs="{'invisible':[('state','!=',['sent'])]}" />
+                    <button name="user_done_memo" class="oe_stat_button oe_highlight" icon="fa-calendar" states="Approve2" help="Click to move to Done." type="object" confirm="Are you sure you want to Complete?" string="Complete"/>
+                    <button name="print_memo" string="Print Memo" icon="fa-print" attrs="{'invisible':[('state','in',['submit','refuse'])]}" type="object" class="oe_highlight"/>
+                    <field name="state" widget="statusbar" statusbar_visible="submit,Sent,Approve,Done"/><!--statusbar_visible="draft,reported,done,refused"-->
 
                 </header>
                     <sheet>
                     <!-- https://i.imgur.com/ezqLtzV.jpg -->
                     <!-- <div class="row" style="background-image:url('/company_memo/static/description/img/icon.png'); background-cover:cover; height:100px"/> -->
                             <!-- <img src="/allocation_addon/static/img/usl.png" style="max-height:80px;max-width:60px;"/> -->
-                            <div class="row">
-                                <!-- <div class="col-xs-4 pull-right mt8"> -->
-                                       <center><img src="/company_memo/static/description/icon.png" style="max-height:180px;max-width:400px;"/></center>
-                                    
-                                <!-- </div> -->
-                                <div class="col-xs-4 pull-left mt8">
-                                    <button name="user_approve_memo"
-                                        class="oe_stat_button oe_highlight"
-                                        icon="fa-calendar" attrs="{'invisible': ['|',('memo_type','!=','Internal'),('state','!=','Sent')]}"
-                                        type="object" confirm ="Are you sure you want to approve?" string="Approve Memo">
-                                    </button>
-                                </div>
-                                 
-                            </div>
-                            <br/>
-                        <div class="oe_button_box">
-                            <button name="return_memo"
-                                class="oe_stat_button"
-                                icon="fa-redo"
-                                attrs="{'invisible':[('state','in',['submit', 'Approve','Approve2','Done'])]}"
-                                type="object" string="Return Memo">
+                        <div class="row">
+                                <!-- <center><img src="/company_memo/static/img/usl.png" style="max-height:180px;max-width:400px;"/></center> -->
+                            <div class="col-xs-4 pull-left mt8">
+                                 <!--ADDD--><button 
+                                 name="user_approve_memo" 
+                                 class="oe_stat_button oe_highlight" 
+                                 icon="fa-calendar" 
+                                 attrs="{'invisible': ['|', ('state','!=','Sent'),('user_is_approver','!=', True)]}" type="object" confirm="Are you sure you want to approve?" string="Validate &amp; Approve Memo">
+                                </button><!--ADDD-->
+                                <button name="return_memo"
+                                    class="btn-danger oe_stat_button sm"
+                                    icon="fa-redo"
+                                    attrs="{'invisible': ['|', '|',('memo_type','not in',['Internal', 'material_request', 'procurement_request', 'cash_advance', 'soe', 'vehicle_request']),('state','!=','Sent'),('user_is_approver','!=', True)]}"
+                                    type="object" string="Return Memo">
                             </button>
-                         
-                        <button name="action_get_attachment_view"
-                            class="oe_stat_button"
-                            icon="fa-book" 
-                            type="object">
-                            <field name="attachment_number" widget="statinfo" string="Documents"/>
-                        </button>
-                    
+                            <!-- groups="base.group_system,company_memo.mainmemo_manager,company_memo.mainmemo_audit" -->
+                            </div> 
                         </div>
-                    <div class="oe_title">
+                        <br/>
+                        <div class="oe_button_box oe_right">
+                            <button name="action_get_attachment_view"
+                                class="oe_highlight"
+                                icon="fa-book" 
+                                type="object">
+                                <field name="attachment_number" widget="statinfo" string=" - Documents"/>
+                            </button>
+                            <button name="view_related_record"
+                                class="btn-primary oe_highlight"
+                                attrs="{
+                                    'invisible': [('state','in',['Sent', 'submit', 'refuse'])]}"
+                                type="object" string="View Related Record"/>
+                                
+                            <!-- <button name="migrate_records"
+                                class="oe_stat_button"
+                                icon="fa-book" 
+                                type="object"
+                                string="Migrate Account Records" groups="base.group_system">
+                            </button> -->
+                        </div>
+                        <div class="oe_title">
                         <label for="name"/>
                             <h1 style="color:Tomato;">
-                                <field name="name" required="1" placeholder="e.g. Description"/>
+                                <field name="name" required="1" placeholder="e.g. Description" attrs="{'readonly':[('state','not in',['submit'])]}"/>
                             </h1>
                         </div>
                         <group>
-                        
+                            <group> 
+                                    <label for="memo_type"/>
+                                    <div>
+                                        <field name="memo_type" required="1" attrs="{'readonly':[('state','not in',['submit'])]}"/>
+                                        <!-- widget="radio"  -->
+                                    </div>
+                            </group> 
                             <group>
-                                <field name="employee_id" attrs="{'readonly':[('state','not in',['submit'])]}"/>
-                                 <field name="direct_employee_id" required="0" invisible="1" string= "Through" attrs="{'readonly':[('state','in',['Done', 'Approve'])]}"/>
-                                  <field name="set_staff" string = "Memo With" readonly="1" invisible="1"/>
-                                  <field name="demo_staff" invisible="0"/>
+
+                            </group>
+                            <group>
+                                <field name="employee_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'readonly':[('state','not in',['submit'])]}"/>
+                                <field name="phone" readonly="1" invisible="1"/>
+                                <field name="email" readonly="1" invisible="1"/>
+                                <field name="direct_employee_id" required="0" invisible="1" string= "Through" attrs="{'readonly':[('state','in',['Done', 'Approve'])]}"/>
+                                <field name="set_staff" string = "Memo With" readonly="1" invisible="1"/>
+                                <field name="demo_staff" invisible="1"/>
+                                <field name="district_id" string="Branch" invisible="0" attrs="{'readonly':[('state','not in',['submit'])]}" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" /> 
                                 <field name="dept_ids" widget="selection" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" readonly="1"/>
-                                <field name="invoice_id" attrs="{'invisible':[('memo_type','!=','Payment')]}"/>
-                                <field name="vendor_id" string="Recipient" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'invisible':[('memo_type','!=','Payment')]}"/>
+                                <field name="loan_type" attrs="{'invisible':[('memo_type','!=','loan')], 'required':[('memo_type','=','loan')]}"/>
+                                <field name="loan_amount" attrs="{'invisible':[('memo_type','!=','loan')],'required':[('memo_type','=','loan')]}"/>
+                                <field name="periods" attrs="{'invisible':[('memo_type','!=','loan')],'required':[('memo_type','=','loan')]}"/>
+                                <field name="method_period" attrs="{'invisible':[('memo_type','!=','loan')],'required':[('memo_type','=','loan')]}"/>
+                                <field name="start_date" attrs="{'invisible':[('memo_type','!=', 'loan')],'required':[('memo_type','=','loan')]}"/>
+                                <field name="cash_advance_reference" attrs="{'invisible':[('memo_type','!=', 'soe')],'required':[('memo_type','=','soe')]}"/>
+                                <field name="soe_advance_reference" attrs="{'invisible':[('memo_type','!=', 'cash_advance')]}"/>
+                                <field name="currency_id" invisible="1"/>
+
+                                <!-- <field name="invoice_id" attrs="{'invisible':[('memo_type','!=','Payment')]}" -->
+                                <!-- <field name="vendor_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" string="Vendor" attrs="{'invisible':[('memo_type','!=','Payment')]}"/> -->
                                 <field name = "users_followers" widget="many2many_tags" required="0" readonly="1"/>
-                                <field name = "res_users" widget="many2many_tags" required="0" readonly="1"/>
+                                <field name = "res_users" widget="many2many_tags" required="0" readonly="1"/>  
+                                
+                                <field name="active" invisible="1"/>
+                                <field name="approver_id" invisible="1" readonly="1" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" />
+                                <field name="user_is_approver" invisible="1"/>
+                                <!-- ADDD -->
+                                <field name="approver_date" readonly="1" attrs="{'invisible':[('state','=', 'Done')]}"/>
+                                <!-- ADDD -->
 
-                                 
-                            </group>
-
-                            <group>
-
-                                <field name="date"/>
-                                <field name="user_ids" readonly="1" invisible="1"/>
-                                <field name="amountfig" string="Amount" attrs="{'required':[('memo_type','=','Payment')],'invisible':[('memo_type','!=','Payment')]}"/>
-                                <field name="project_id" attrs="{'readonly':[('state','not in',['submit'])]}"/>
+                            </group> 
+                            <group> 
+                             
+                                <field name="date" attrs="{'readonly':[('state','not in',['submit'])]}" options='{"datepicker": {"daysOfWeekDisabled": [5,6]}}'/>
+                                <field name="date_deadline" attrs="{'readonly':[('state','not in',['submit'])], 'invisible':[('memo_type','not in',[['material_request','procurement_request']])]}"/>
+                                <!-- <field name="leave_start_date" options='{"datepicker": {"daysOfWeekDisabled": [0, 6]}}' attrs="{'required':[('memo_type','in',['leave_request'])],'invisible':[('memo_type','not in',['leave_request'])]}"/> -->
+                                <field name="leave_type_id"  options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'required':[('memo_type','in',['leave_request'])], 'invisible':[('memo_type','not in',['leave_request'])], 'readonly':[('state','not in',['submit'])]}"/>
+                                <field name="leave_start_date" widget="daterange" options='{"related_end_date": "leave_end_date", "datepicker": {"daysOfWeekDisabled": [5, 6]}}' attrs="{'required':[('memo_type','in',['leave_request'])],'invisible':[('memo_type','not in',['leave_request'])], 'readonly':[('state','not in',['submit'])]}"/>
+                                <field name="leave_end_date" attrs="{'required':[('memo_type','in',['leave_request'])], 'invisible':[('memo_type','not in',['leave_request'])],'readonly':[('state','not in',['submit'])]}"/>
+                                <field name="user_ids" readonly="1" invisible="1" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" />
+                                <field name="amountfig" string="Amount" attrs="{'required':[('memo_type','in',['Payment', 'cash_advance'])],'invisible':[('memo_type','not in',['Payment', 'cash_advance'])]}" readonly="1" force_save="1"/>
+                                <field name="project_id" attrs="{'readonly':[('state','not in',['submit'])]}" invisible="1" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" />
                                 <field widget="binary" height="64" name="file_upload" filename="file_namex" required="0" invisible="1" string="Upload File" />
-                                <field name="file_namex" invisible="1"/>
-                                
-                                <field name = "partner_id" string="Notification Reciepients" widget="many2many_tags" invisible="1" readonly="1"/>
-                                
-
+                                <field name="file_namex" invisible="1"/> 
+                                <field name = "partner_id" string="Notification Reciepients" widget="many2many_tags" invisible="1" readonly="1" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" /> 
                                 <field name="status_progress" widget="progressbar" string="Progress(%)"/>
-                            </group>
+                                <field name="code"/>  
 
-                             <group>
-
-                            <label for="memo_type"/>
-                                <div>
-                                    <field name="memo_type" widget="radio"/>
-                                </div>
                             </group> 
                         </group>
                         <notebook>
-                        <page name='description' string='Memo Body'>
-                            <field name="description" string = "More Notes" placeholder="Notes..." widget="html"/>
-                        </page>
-                        
-                         <page name='comments' string='Comments'>
-                            <field name="comments" readonly="1" string = "Comments" placeholder="Notes..." widget="html"/>
-                        </page>
+                            <page name='Products' string='Request item' attrs="{'invisible':[('memo_type','not in',['material_request', 'procurement_request', 'cash_advance', 'soe', 'vehicle_request'])]}">
+                                <field name="product_ids" string = "Items" context="{'default_state': state, 'default_memo_type': memo_type}" attrs="{'readonly':[('state','not in',['submit'])]}">
+                                    <tree string="Items" editable="bottom">
+                                        <field name="state" string="State" invisible="1"/> 
+                                        <field name="district_id" string="District" invisible="1"/> 
+                                        <field name="memo_id" string="Memo" invisible="1"/> 
+                                        <field name="memo_type" string="Memo type" invisible="1"/> 
+                                        <field name="product_id" string="Product"
+                                         attrs="{'required':[('memo_type','in',['material_request', 'procurement_request', 'cash_advance', 'soe', 'vehicle_request'])], 
+                                         'invisible': [('memo_type', 'in', ['Payment','Internal', 'leave_request', 'loan'])]}"/> 
+                                        <field name="description" string="Description" invisible="0" attrs="{'required': [('product_id', '=', False)]}"/> 
+                                        <field name="code" string="Code" readonly="1" attrs="{'invisible': [('memo_type', 'in', ['Payment','Internal', 'leave_request', 'loan'])]}"/> 
+                                        <field name="quantity_available" string="Request Quantity" attrs="{'invisible': [('memo_type', 'in', ['Payment','Internal', 'leave_request', 'loan'])]}"/> 
+                                        <field name="amount_total" string="Unit Price" attrs="{'invisible': [('memo_type', 'in', ['Payment','Internal', 'leave_request', 'loan'])]}"/> 
+                                        <field name="used_qty" string="Used Qty" attrs="{'readonly': [('memo_type', 'not in', ['soe'])],'invisible': [('memo_type', 'in', ['Payment','Internal', 'leave_request', 'loan'])]}"/> 
+                                        <field name="used_amount" string="Used Amount" attrs="{'readonly': [('memo_type', 'not in', ['soe'])],'invisible': [('memo_type', 'in', ['Payment','Internal', 'leave_request', 'loan'])]}"/> 
+                                        <field name="note" string="Note" invisible="0"/> 
+                                        <field name="source_location_id" string="Source Location" attrs="{'readonly':[('state','in',['draft'])], 'invisible': [('memo_type', 'in', ['Payment','Internal', 'leave_request', 'loan'])]}"/> 
+                                        <field name="dest_location_id" string="Destination Location" attrs="{'readonly':[('state','in',['draft'])], 'invisible': [('memo_type', 'in', ['Payment','Internal', 'leave_request', 'loan'])]}"/> 
+                                    </tree>
+                                </field>
+                            </page>
+                            <!--ADDD--><page name='Invoices' string='Invoices' attrs="{'invisible':[('memo_type','!=','Payment')]}">
+                                <field name="invoice_ids" context="{'default_type': 'in_receipt', 'default_memo_id': active_id, 'default_district_id': district_id}" domain="[('state', '=', 'draft')]" attrs="{'readonly':[('state','in',['Sent', 'Done', 'Approve2'])]}">
+                                    <tree string="Invoices">
+                                        <field name="district_id" string="District" invisible="1"/> 
+                                        <field name="memo_id" string="Memo" invisible="1"/>  
+                                        <field name="name" string="Description" invisible="0"/>  
+                                        <field name="partner_id" string="Partner" invisible="0"/> 
+                                        <field name="type" string="Type" invisible="0"/>  
+                                        <field name="ref" string="Ref" invisible="0"/>  
+                                        <field name="date" string="Date" invisible="0"/> 
+                                        <field name="payment_journal_id" string="Payment journal" required="0" />  
+                                        <field name="amount_total" string="Amount" invisible="0"/> 
+                                        <field name="state" string="Status" invisible="0"/> 
+                                        <button name="action_post" string="Post" class="oe_highlight btn-sm" type="object" groups="account.group_account_invoice,base.group_system,company_memo.mainmemo_account,account.group_account_manager" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                                        <field name="invoice_payment_state" string="Payment Status" invisible="0"/>  
+                                        <button name="action_invoice_register_payment" id="account_invoice_payment_btn" type="object" class="oe_highlight btn-sm" attrs="{'invisible': ['|', '|', ('state', '!=', 'posted'), ('invoice_payment_state', '!=', 'not_paid'), ('type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]}" string="Register Payment" groups="account.group_account_invoice,base.group_system,company_memo.mainmemo_account,account.group_account_manager"/>
+                                    </tree>
+                                </field>
+                            </page><!--ADDD-->
+                            <page name='description' string='Memo Body'>
+                                <field name="description" string = "More Notes" placeholder="Notes..." widget="html" attrs="{'readonly':[('state','in',['Done', 'Approve'])]}"/>
+                            </page> 
+                            
+                            <page name='comments' string='Comments'>
+                                <field name="comments" readonly="1" string = "Comments" placeholder="Notes..." widget="html" attrs="{'readonly':[('state','in',['Done', 'Approve'])]}"/>
+                            </page>
 
-                        <page name='reason_backs' string='Return Reason'>
-                            <field name="reason_back" readonly = "0" string = "Add Notes" placeholder="Notes..." widget="html"/>
-                        </page>
-
+                            <page name='reason_backs' string='Return Reason'>
+                                <field name="reason_back" readonly = "0" string = "Add Notes" placeholder="Notes..." widget="html" attrs="{'readonly':[('state','in',['Done', 'Approve'])]}"/>
+                            </page> 
                         </notebook>
                     </sheet>
                     <div class="oe_chatter">
@@ -161,47 +199,45 @@
             </field>
         </record>
 
-        <record id="tree_memo_model_view2" model="ir.ui.view">
+        <record model="ir.ui.view" id="tree_memo_model_view2">
             <field name="name">Internal Memo Tree</field>
             <field name="model">memo.model</field>
+            <field name="priority">50</field>
             <field name="arch" type="xml">
-                <tree string="Memo Requests" colors="black:state == 'submit';green:state == 'Sent';grey:state == 'refuse';">
-                    <field name="date"/>
-                    <field name="date"/>
-
+                <tree string="Memo Requests">
+                    <field name="date"/> 
                     <field name="name"/>
                     <field name="employee_id"/>
                     <field name="set_staff" string = "Memo With?"/>
-
+                    <field name="code"/> 
                     <field name="state"/>
                     <field name="status_progress" widget="progressbar" string="Progress(%)"/>
                 </tree>
             </field>
         </record>
-
-    <record model="ir.ui.view" id="main_memo_model_search_view">
-      	<field name="name">Internal Memo Request Search</field>
-		    <field name="model">memo.model</field>
-		    <field name="arch" type="xml">
-				 <search string="Internal Memo Filter"> 
-						<field name="name"/>
-                        <field name="dept_ids"/>
-                        <field name="vendor_id" string="Recipient"/>
-                        <field name="employee_id"/>
-                        <field name="project_id"/>
-                        <field name="code"/> 
-                        <field name="date" />
-
-					 <group expand="0" string="Group By">
-				       <filter string="Name" icon="terp-personal" domain="[]" context="{'group by':'name'}" />
-					   <filter string="Approve" icon="terp-personel" domain="[('state','=', 'Approve')]" context="{'group by':'state'}" />
-                       <filter string="Sent" icon="terp-personel" domain="[('state','=', 'Sent')]" context="{'group by':'state'}" />
-                       <filter string="Done" icon="terp-personel" domain="[('state','=', 'Done')]" context="{'group by':'state'}" />
-                       <filter string="Date" icon="terp-personal" domain="[]" context="{'group by':'date'}" />
-                    </group>
-			  </search>
-		 	</field>
-	  </record>
+ 
+        <record model="ir.ui.view" id="main_memo_model_search_view">
+            <field name="name">Internal Memo Request Search</field>
+                <field name="model">memo.model</field>
+                <field name="arch" type="xml">
+                    <search string="Internal Memo Filter"> 
+                            <field name="name"/>
+                            <field name="dept_ids"/>
+                            <!-- <field name="vendor_id" string="Vendor"/> -->
+                            <field name="employee_id"/>
+                            <field name="project_id"/>
+                            <field name="code"/> 
+                            <field name="date" /> 
+                        <group expand="0" string="Group By">
+                            <filter name="name" string="Name" icon="terp-personal" domain="[]" context="{'group by':'name'}" />
+                            <filter name="Approve" string="Approve" icon="terp-personel" domain="[('state','=', 'Approve')]" context="{'group by':'state'}" />
+                            <filter name="Sent" string="Sent" icon="terp-personel" domain="[('state','=', 'Sent')]" context="{'group by':'state'}" />
+                            <filter name="Done" string="Done" icon="terp-personel" domain="[('state','=', 'Done')]" context="{'group by':'state'}" />
+                            <filter name="Date" string="Date" icon="terp-personal" domain="[]" context="{'group by':'date'}" />
+                        </group>
+                </search>
+                </field>
+        </record>
 
 
 
@@ -219,7 +255,7 @@
                             <field name="resp" readonly="0"  invisible="1"/>
                             <field name="direct_memo_user" string ="Initiator"/>
                         </group>
-                            <field name="reason" placeholder="Please Add Reason(s) ..." colspan="4"/>
+                            <field name="reason" placeholder="Please Add Reason(s) ..." />
                     <footer>
                         <button name="post_back" type="object" string="Return" class="oe_highlight"/>
                             <button string="Cancel" class="oe_link" special="cancel"/>
@@ -229,47 +265,78 @@
             </field>
         </record> -->
 
-<!--####################3--> 
-<act_window id="internal_memo_model_action"
-name="Internal Memo Request"
-res_model="memo.model"
-view_mode="tree,form"/>
+<!--####################3-->  
+        <record model="ir.actions.act_window" id="internal_memo_model_action">
+            <field name="name">Internal Memo Request</field>
+            <field name="res_model">memo.model</field>
+            <field name="type">ir.actions.act_window</field>
+           <!-- <field name="domain">[('is_house','=',True)]</field>
+            <field name="context">{'search_default_project_type_grp': 1, 'search_default_building_type_grp': 1}</field>
+            <field name="search_view_id" ref="view_building_type_search_filter"/> -->
+             <field name="view_mode">tree,form</field>
+        </record>
 
-<!-- ##################### -->
-<act_window id="internal_memo_action_sent"
-name="Internal Memo Request"
-res_model="memo.model"
-domain="[('state', '=', 'Sent')]"
-view_mode="tree,form"/>
+        <record model="ir.actions.act_window" id="internal_memo_action_sent">
+            <field name="name">Internal Memo Request</field>
+            <field name="res_model">memo.model</field>
+            <field name="domain">[('state', '=', 'Sent')]</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_mode">tree,form</field>
+        </record>
 
+        <record model="ir.actions.act_window" id="internal_memo_action_Approve">
+            <field name="name">Internal Memo Request</field>
+            <field name="res_model">memo.model</field>
+            <field name="domain">[('state', '=', 'Approve')]</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_mode">tree,form</field>
+        </record>
 
-<act_window id="internal_memo_action_Approve"
-name="Internal Memo Request"
-res_model="memo.model"
-domain="[('state', '=', 'Approve')]"
-view_mode="tree,form"/>
+        <record model="ir.actions.act_window" id="memo_model_refuse_action">
+            <field name="name">Internal Memo Request</field>
+            <field name="res_model">memo.model</field>
+            <field name="domain">[('state', '=', 'refuse')]</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_mode">tree,form</field>
+        </record>
 
-<act_window id="memo_model_refuse_action"
-name="Internal Memo Request"
-res_model="memo.model"
-domain="[('state', '=', 'refuse')]"
-view_mode="tree,form"/>
+        <record model="ir.actions.act_window" id="internal_memo_action_done">
+            <field name="name">Internal Memo Request</field>
+            <field name="res_model">memo.model</field>
+            <field name="domain">[('state', '=', 'Done')]</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_mode">tree,form</field>
+        </record>
 
-<act_window id="internal_memo_action_done"
-name="Internal Memo Request"
-res_model="memo.model"
-domain="[('state', '=', 'Done')]"
-view_mode="tree,form"/>
+        <record model="ir.actions.act_window" id="loan_request_action">
+            <field name="name">Loan Request</field>
+            <field name="res_model">memo.model</field>
+            <field name="domain">[('memo_type', '=', 'loan')]</field>
+            <field name="context">{'default_memo_type': 'loan'}</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_mode">tree,form</field>
+        </record>
 
+        <menuitem id="internal_memo_menu_model_main2" name="Office Memo" groups="base.group_system,company_memo.mainmemo_manager,company_memo.mainmemo_account,company_memo.mainmemo_officer" action = "internal_memo_model_action" sequence = "2" web_icon="company_memo,static/description/icon.png"/>
+        <!-- <menuitem id="account_loan_request_menu" name="Loan Request" groups="base.group_system,company_memo.mainmemo_manager,company_memo.mainmemo_account,company_memo.mainmemo_officer,base.group_user" sequence = "10" web_icon="company_memo,static/description/loan_icon.png"/>
+            <menuitem id="account_loan_request_menu_node1" name="Request(s)"
+            parent="account_loan_request_menu" sequence= "1" action = "loan_request_action" />
 
-<menuitem id="internal_memo_menu_model_main2" name="Office Memo" groups="base.group_system,company_memo.mainmemo_manager,company_memo.mainmemo_account,company_memo.mainmemo_officer" action = "internal_memo_model_action" sequence = "2" web_icon="company_memo,static/description/icon.png"/>
- 
+        <menuitem
+                id="company_memo_generated_loan_menu"
+                parent="company_memo.account_loan_request_menu"
+                sequence="20"
+                name="View Generated Loans"
+                action="account_loan.account_loan_action"
+                groups="account.group_account_user,account.group_account_invoice,account.group_account_manager,base.group_system,company_memo.mainmemo_manager,company_memo.mainmemo_account"
+
+            /> -->
+
         <menuitem id="internal_memo_menu_model_1" name="Office Memo Type"
             parent="internal_memo_menu_model_main2" groups="base.group_system,company_memo.mainmemo_manager,company_memo.mainmemo_account,company_memo.mainmemo_officer"/>
             <menuitem id="internal_memo_menu_model2" sequence= "1" name="Memo Requests"
             parent="internal_memo_menu_model_1" action="internal_memo_model_action" groups="base.group_system,company_memo.mainmemo_manager,company_memo.mainmemo_account,company_memo.mainmemo_officer"/>
 
-           <!--  -->
             <menuitem id="internal_memo_menu_sent" name="To Approve"
             parent="internal_memo_menu_model_1" sequence= "2" action = "internal_memo_action_sent"/>
 
@@ -281,9 +348,5 @@ view_mode="tree,form"/>
 
             <menuitem id="internal_memo_model_id_refuse" name="Refuse"
             parent="internal_memo_menu_model_1" sequence= "5" action = "memo_model_refuse_action"/>
- 
-
-  
-
     </data>
 </odoo>

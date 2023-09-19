@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="hr_view_employee_memo_form" >
+            <field name="name">hr.employee</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form" />
+            <field name="arch" type="xml"> 
+                <field name="parent_id" position="after">
+                    <field name="administrative_supervisor_id" string="Administrative supervisor" options="{'no_create': True,'no_open': True}"/>
+                </field> 
+
+            </field>
+        </record>
+
+
+    <!-- <menuitem id="view_pms_district_menu" name="District" sequence="50" parent="hr_pms.view_hr_pms_config_menu" action="hr_pms.action_employee_district_view_id"
+    groups="base.group_system,hr_pms.group_pms_officer_id,hr_pms.group_pms_manager_id"/> -->
+     
+    </data>
+</odoo>
