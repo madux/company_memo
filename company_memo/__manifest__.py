@@ -32,9 +32,10 @@
     # 'qweb': [
     #     'static/src/xml/base.xml',
     # ],
-    'price': 135.00,
+    'price': 100.00,
     'sequence': 1,
     'currency': 'EUR',
     'installable': True,
+    'images': ['static/description/memo.gif'],
     'auto_install': False,
 }
