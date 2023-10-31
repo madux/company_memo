@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Office Memo Application',
+    'name': 'Office Memo Application..',
     'version': '13.0',
     'author': 'Maach Services',
     'description': """An Odoo Memo application use to send memo / information accross individuals: 
@@ -31,7 +31,7 @@
     # ]},
     # 'qweb': [
     #     'static/src/xml/base.xml',
-    # ],
+    # ],*
     'price': 100.00,
     'sequence': 1,
     'currency': 'EUR',

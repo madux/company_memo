@@ -108,7 +108,7 @@ class Memo_Model(models.Model):
     cash_advance_reference = fields.Many2one('memo.model', 'Cash Advance ref.')
     date_deadline = fields.Date('Deadline date')
     status_progress = fields.Float(string="Progress(%)", compute='_progress_state')
-    users_followers = fields.Many2many('hr.employee', string='Add followers') #, default=_default_employee)
+    users_followers = fields.Many2many('hr.employee', string='Followers') #, default=_default_employee)
     res_users = fields.Many2many('res.users', string='Approvers') #, default=_default_employee)
     comments = fields.Text('Comments', default="-")
     attachment_number = fields.Integer(compute='_compute_attachment_number', string='No. Attachments')

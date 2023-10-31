@@ -12,6 +12,7 @@
                     <group>
                         <group>
                             <field name="memo_type" required="1"/> 
+                            <field name="restrict_to_superior" default="1"/> 
                             <field name="active" default="1"/> 
                         </group>
                         <group>

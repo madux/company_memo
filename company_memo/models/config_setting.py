@@ -30,6 +30,7 @@ class MemoConfig(models.Model):
         required=True
         )
     active = fields.Boolean(string="Active", default=True)
+    restrict_to_superior = fields.Boolean(string="Restrict to Superiors", default=True)
 
     @api.constrains('memo_type')
     def _check_duplicate_memo_type(self):

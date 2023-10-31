@@ -11,10 +11,8 @@ class Forward_Wizard(models.TransientModel):
     date = fields.Datetime('Date', default=lambda self: fields.datetime.now())#, default=fields.Datetime.now())
     direct_employee_id = fields.Many2one('hr.employee', 'Direct To')
     is_approver = fields.Selection([('yes', 'Yes'),('no', 'No')],default="", string="Is Approver")
-    # amountfig = fields.Float('Budget Amount', store=True)
     users_followers = fields.Many2many('hr.employee', string='Add followers')
     is_officer = fields.Boolean(string="Is Officer")
-    # direct_employee_id = fields.Many2one('hr.employee', 'Direct To', domain=lambda self: self.domain_approvers())
     all_superior_ids = fields.Many2many('hr.employee',string="Employees for approvals",compute="_load_all_superior_ids") 
 
     def _get_all_related_superior_ids(self):
@@ -28,21 +26,24 @@ class Forward_Wizard(models.TransientModel):
         memo_settings = self.env['memo.config'].sudo().search([
             ('memo_type', '=', self.memo_record.memo_type)
             ])
-        memo_final_approver_ids = memo_settings.approver_ids
-        if current_user.id == employee.parent_id.user_id.id:
-            '''Returns the list of approvers set for the type of request'''
-            superior_employee_ids = [emp.id for emp in memo_final_approver_ids]
-        elif current_user.id == employee.administrative_supervisor_id.user_id.id:
-            '''
-            Return all approvers , including the employee manager, 
-            here supervisor can approve for dept 
-            because if someone goes for leave, the next person approves
-            '''
-            superior_employee_ids.append(manager)
-            superior_employee_ids = [emp.id for emp in memo_final_approver_ids]
-        else:# current_user.id == employee.user_id.id:
-            '''Remove current user from list to avoid forwarding to himself'''
-            superior_employee_ids = [administrative_supervisor, manager]
+        if memo_settings.restrict_to_superior:
+            memo_final_approver_ids = memo_settings.approver_ids
+            if current_user.id == employee.parent_id.user_id.id:
+                '''Returns the list of approvers set for the type of request'''
+                superior_employee_ids = [emp.id for emp in memo_final_approver_ids]
+            elif current_user.id == employee.administrative_supervisor_id.user_id.id:
+                '''
+                Return all approvers , including the employee manager, 
+                here supervisor can approve for dept 
+                because if someone goes for leave, the next person approves
+                '''
+                superior_employee_ids.append(manager)
+                superior_employee_ids = [emp.id for emp in memo_final_approver_ids]
+            else: 
+                '''Remove current user from list to avoid forwarding to himself'''
+                superior_employee_ids = [administrative_supervisor, manager]
+        else:
+            superior_employee_ids = [rec.id for rec in self.env['hr.employee'].sudo().search([])]
         return superior_employee_ids
     
     @api.depends("memo_record")
