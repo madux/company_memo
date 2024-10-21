@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="account_view_account_journal_form_inherit">
+            <field name="name">Journal--</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='company_id']" position="after">
+                    <field name="overall_balance_in_gl" readonly="1" force_save="1"/>
+                </xpath>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="account_journal_dashboard_kanban_view_inherit">
+            <field name="name">Journal Kanban - Memo</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.account_journal_dashboard_kanban_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//t[@t-name='JournalBodyBankCash']//div[@id='dashboard_bank_cash_right']//div[1]" position="inside">
+                    <div class="row"> 
+                        <div id="overall_balance_gl" class="col overflow-hidden text-start">
+                            <span title="Overall Balance">Overall Balance - </span>
+                        </div>
+                        <div class="col-auto text-end">
+                            <span> ₦ <field name="overall_balance_in_gl"/></span>
+                            <!-- <t t-esc="dashboard.account_balance"/></span>  -->
+                        </div>
+                    </div>
+                </xpath> 
+            </field>
+        </record>
+    </data>
+</odoo>

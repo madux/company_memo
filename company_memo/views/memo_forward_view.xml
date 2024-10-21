@@ -9,18 +9,26 @@
                 <form string="Forward Memo">
                     <group>
                         <group>
-                            <field name="memo_record" readonly="1"/> 
-                            <field name="resp" readonly="1" invisible="0"/>
-                            <field name="direct_employee_id" string="To" required="1"/> 
+                            <field name="memo_record" readonly="1" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/> 
+                            <field name="resp" readonly="1" invisible="0" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
+                            <field name="is_officer" invisible="1"/> 
+                            <field name="direct_employee_id" string="Direct To" required="1" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"
+                            attrs="{'readonly': [('is_officer', '=', True)]}" domain="[('id', 'in', all_superior_ids or False)]"/> 
+                            
                             <!-- <field name = "users_followers" widget="many2many_tags" required="0"/> -->
-
                             <!-- <field name="amountfig"/> -->
-                            <field name="date"/>
+                            <field name="is_approver" invisible="1" />
+                            <field name="all_superior_ids" widget="many2many_tags"/>
                         </group>
                         <group> 
+                            <field name="has_conditional_stage" readonly="1" invisible="1"/>
+                            <field name="dummy_conditional_stage_ids" invisible="1"/>
+                            <field name="conditional_stage_id" domain="[('id', 'in', dummy_conditional_stage_ids or False)]" attrs="{'invisible': [('has_conditional_stage', '=', False)], 'required': [('has_conditional_stage', '=', True)]}" 
+                            options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
+                            <field name="date"/>
                             
-                            <field name="description_two" required="0" placeholder="Please Add Comment ..." colspan="20"/>
                         </group>
+                        <field name="description_two" required="0" placeholder="Please Add Comment ..." colspan="20"/>
                                 
                     <footer>
                         <button name="forward_memo" type="object" string="Forward" class="oe_highlight"/>

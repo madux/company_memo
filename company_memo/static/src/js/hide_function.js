@@ -3,7 +3,7 @@ odoo.define('memo.hide_edit_buttons', function (require) {
     let FormView = require('web.FormView');
     var session = require('web.session');
     var Model = require('web.Model');
-    var mymodel = new Model('memo.model');
+    var mymodel = Model('memo.model');
     FormView.include({
         load_record: function (record) {
             if (record && this.$buttons) { 

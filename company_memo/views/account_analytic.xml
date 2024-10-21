@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="view_account_analytic_account_form_form_inherit">
+            <field name="name">Analytic Account--</field>
+            <field name="model">account.analytic.account</field>
+            <field name="inherit_id" ref="analytic.view_account_analytic_account_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <field name="account_id" readonly="0" required="0" force_save="1"/>
+                </xpath>
+                <xpath expr="//field[@name='currency_id']" position="after">
+                    <button name="update_account_id" type="object" class="oe_stat_button" string="Update Account"/>
+                </xpath>
+            </field>
+        </record> 
+        <record model="ir.ui.view" id="view_account_analytic_account_list_inherit">
+            <field name="name">Analytic Account--</field>
+            <field name="model">account.analytic.account</field>
+            <field name="inherit_id" ref="analytic.view_account_analytic_account_list"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <field name="account_id" readonly="0" required="0" force_save="1"/>
+                </xpath> 
+            </field>
+        </record> 
+    </data>
+</odoo>
