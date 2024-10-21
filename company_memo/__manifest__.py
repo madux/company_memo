@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Office Memo Application..',
-    'version': '13.0',
-    'author': 'Maach Services',
+    'version': '14.0',
+    'author': 'Maach Services / Maduka Sopulu Chris',
     'description': """An Odoo Memo application use to send memo / information accross individuals: 
     It can also be used to send requests.""",
     'summary': 'Memo application for Companies etc ',
