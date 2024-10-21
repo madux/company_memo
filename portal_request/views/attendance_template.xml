@@ -1,0 +1,75 @@
+<odoo>
+    <data>
+        <template id="attendance_form_template" name="Attendance form">
+            <t t-call="portal.portal_layout">
+                <t t-set="wrapwrap_classes" t-value="'o_portal_bg_dark'"/>
+
+                <t t-set="o_portal_fullwidth_alert" groups="base.group_user">
+                    <t t-call="portal.portal_back_in_edit_mode">
+                        <t t-set="backend_url" t-value="'/web#model=memo.model&amp;id=%s&amp;view_type=form' % (req.id)"/>
+                    </t>
+                </t>
+                <section class="s_website_form pt16 pb16 o_colored_level attendance-request-form" id="attendance-request-form" data-vcss="001" data-snippet="s_website_form" data-name="Form" style="background-image: none;">
+                    <div class="navbar-light  py-0 mb-2">
+                        <a id="previous" href="/my/requests" class="btn btn-secondary btn-sm">
+                            Back
+                        </a>
+                          
+                    </div>
+
+                    <div class="row mt16 o_project_portal_sidebar">
+                        <t t-call="portal.portal_record_sidebar">
+                            <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+                        </t>
+                        <div id="request_content" class="col-12 col-lg justify-content-end">
+                            <div id="card" class="card">
+                                <div id="card_header" class="card-header container" data-anchor="true">
+                                    <div class="row gs-0">
+                                        <div class="col-md">
+                                            <h5 class="row mx-1 mb-1 mb-md-0">
+                                            <div class="col-6 text-truncate">
+                                                .
+                                            </div>
+                                            <div class="col-3 p-3 text-end">
+                                                <small class="text-end">Checkin:</small>
+                                                <t t-if="hr_attendance.check_in"><span t-field="format_date(hr_attendance.check_in)" class="badge rounded-pill text-bg-info"/></t>
+                                                <t t-if="hr_attendance.check_out"><span t-field="format_date(hr_attendance.check_out)" class="badge rounded-pill text-bg-info"/></t>
+                                            </div>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="card_body" class="card-body">
+                                    <div class="attendance-center">
+                                        <h2 id="display-header">Attendance</h2>
+                                        <div class="flex-grow-1">
+                                            <button id="{{ checked_in ? 'btn-checked_in' : 'btn-checked_out' }}" t-attf-class="btn-checkinout btn btn-{{ checked_in ? 'warning' : 'success' }} align-self-center px-5 py-3 mt-4 mb-2">
+                                                <span class="align-middle fs-2 me-3 text-white" t-if="!checked_in">Check IN</span>
+                                                <i t-attf-class="fa fa-4x fa-sign-{{ checked_in ? 'out' : 'in' }} align-middle"/>
+                                                <span class="align-middle fs-2 ms-3" t-if="checked_in">Check OUT</span>
+                                            </button>
+                                        </div>
+                                        <!-- <i class="fa fa-check" aria-hidden="true"></i>
+                                        <button type="button" id="btn-checkin" class="btn-close-success btn-checkoutin" data-bs-dismiss="modal" aria-label="Close">Check in</button>
+                                        <i class="fa fa-checkout" aria-hidden="true"></i>
+                                        <button type="button" id="btn-checkout" class="d-none btn-close-success btn-checkout" data-bs-dismiss="modal" aria-label="Close">Check Out</button>
+                                        <button t-attf-class="btn-checkinout btn btn-success align-self-center px-5 py-3 mt-4 mb-2">
+                                            <span class="align-middle fs-2 me-3 text-white">Check IN</span>
+                                            <i t-attf-class="fa fa-4x fa-sign-in align-middle"/>
+                                            <span class="align-middle fs-2 ms-3">Check OUT</span>
+                                        </button> -->
+                                        <!-- <button t-attf-class="btn-checkinout btn btn-warning align-self-center px-5 py-3 mt-4 mb-2">
+                                            <span class="align-middle fs-2 me-3 text-white">Check IN</span>
+                                            <i t-attf-class="fa fa-4x fa-sign-out align-middle"/>
+                                            <span class="align-middle fs-2 ms-3">Check OUT</span>
+                                        </button> -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </t>
+        </template>
+    </data>
+</odoo>
